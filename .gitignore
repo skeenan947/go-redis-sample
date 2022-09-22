@@ -16,3 +16,5 @@
 
 # MacOS files
 *.DS_Store
+
+**/.terraform*
