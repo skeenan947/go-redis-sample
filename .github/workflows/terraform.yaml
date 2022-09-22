@@ -1,0 +1,15 @@
+name: "Terraform"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  call-terraform-sandbox:
+    uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
+    secrets:
+      GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
+    with:
+      working-directory: modules/sandbox
