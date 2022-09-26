@@ -1,11 +1,35 @@
 # google_client_config and kubernetes provider must be explicitly specified like the following.
 data "google_client_config" "default" {}
 
+resource "null_resource" "enable_service_usage_api" {
+  provisioner "local-exec" {
+    command = "gcloud services enable serviceusage.googleapis.com cloudresourcemanager.googleapis.com --project ${var.project_id}"
+  }
+}
+resource "google_project_service" "project" {
+  for_each = toset(var.google_project_services)
+  project  = var.project_id
+  service  = each.key
+
+  timeouts {
+    create = "30m"
+    update = "40m"
+  }
+
+  disable_dependent_services = true
+  disable_on_destroy         = false
+
+  depends_on = [
+    null_resource.enable_service_usage_api
+  ]
+}
 module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/beta-private-cluster-update-variant"
-  project_id                 = "<PROJECT ID>"
+  version                    = "23.1.0"
+  project_id                 = var.project_id
   name                       = "gke-cluster-01"
   region                     = var.region
+  zones                      = ["${var.region}-a", "${var.region}-b", "${var.region}-c"]
   network                    = "vpc-01"
   subnetwork                 = "${var.region}-01"
   ip_range_pods              = "${var.region}-01-gke-01-pods"
@@ -24,8 +48,7 @@ module "gke" {
   node_pools = [
     {
       name                      = "default-node-pool"
-      machine_type              = "e2-medium"
-      node_locations            = "${var.region}-b,${var.region}-c"
+      machine_type              = "n1-standard-1"
       min_count                 = 2
       max_count                 = 4
       local_ssd_count           = 0
@@ -38,7 +61,6 @@ module "gke" {
       enable_gvnic              = false
       auto_repair               = true
       auto_upgrade              = true
-      service_account           = "project-service-account@${var.project_id}.iam.gserviceaccount.com"
       preemptible               = false
       initial_node_count        = 80
     },
