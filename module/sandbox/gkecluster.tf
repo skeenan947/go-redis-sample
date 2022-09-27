@@ -29,20 +29,19 @@ module "gke" {
   project_id                 = var.project_id
   name                       = "gke-cluster-01"
   region                     = var.region
-  zones                      = ["${var.region}-a", "${var.region}-b", "${var.region}-c"]
-  network                    = "vpc-01"
-  subnetwork                 = "${var.region}-01"
-  ip_range_pods              = "${var.region}-01-gke-01-pods"
-  ip_range_services          = "${var.region}-01-gke-01-services"
+  network                    = google_compute_network.vpc-network.name
+  subnetwork                 = google_compute_subnetwork.main-subnet.name
+  ip_range_pods              = "${var.region}-gke-pods-range"
+  ip_range_services          = "${var.region}-gke-services-range"
   http_load_balancing        = false
   network_policy             = false
   horizontal_pod_autoscaling = true
   filestore_csi_driver       = false
-  enable_private_endpoint    = true
+  enable_private_endpoint    = false
   enable_private_nodes       = true
   master_ipv4_cidr_block     = "10.0.0.0/28"
-  istio                      = true
-  cloudrun                   = true
+  istio                      = false
+  cloudrun                   = false
   dns_cache                  = false
 
   node_pools = [
@@ -108,4 +107,8 @@ module "gke" {
       "default-node-pool",
     ]
   }
+
+  depends_on = [
+    google_project_service.project
+  ]
 }
