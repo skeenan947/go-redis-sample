@@ -3,13 +3,62 @@ name: "Terraform"
 on:
   push:
     branches:
-      - main
+      - pablorusso
   pull_request:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: go-redis
+  REGION: us-west1
+  GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
+
 jobs:
-  call-terraform-sandbox:
-    uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
-    secrets:
-      GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
-    with:
-      working-directory: modules/sandbox
+  # call-terraform-sandbox:
+  #   uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
+  #   secrets:
+  #     GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
+  #   with:
+  #     working-directory: modules/sandbox
+
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{secrets.GOOGLE_CREDENTIALS}}'
+          token_format: access_token
+
+      # This example runs "docker login" directly to Artifact Registry.
+      #- run: |-
+      #    echo '${{ steps.auth.outputs.access_token }}' | docker login -u oauth2accesstoken --password-stdin 'https://${{ env.REGION }}-docker.pkg.dev'
+
+      - name: Login to GAR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
