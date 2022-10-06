@@ -10,6 +10,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   REGION: us-west1
+  GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
 
 jobs:
   call-terraform-sandbox:
@@ -34,7 +35,7 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+          credentials_json: '${{secrets.GOOGLE_CREDENTIALS}}'
           token_format: access_token
 
       # This example runs "docker login" directly to Artifact Registry.
