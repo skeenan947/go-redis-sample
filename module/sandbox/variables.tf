@@ -14,7 +14,7 @@ variable "google_project_services" {
 variable "vpc" {
   type        = string
   description = "VPC name"
-  default = "vpc-01"
+  default     = "vpc-01"
 }
 
 variable "main_subnet_ip_range" {
