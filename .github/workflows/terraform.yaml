@@ -13,44 +13,20 @@ env:
   GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
 
 jobs:
-  call-terraform-sandbox:
-    uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
-    secrets:
-      GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
-    with:
-      working-directory: modules/sandbox
+  # call-terraform-sandbox:
+  #   uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
+  #   secrets:
+  #     GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
+  #   with:
+  #     working-directory: modules/sandbox
 
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - id: 'auth'
-        name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v0'
-        with:
-          workload_identity_provider: 'projects/go-redis/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
-          service_account: 'my-service-account@go-redis.iam.gserviceaccount.com'
-
-          token_format: access_token
-
-      #This example runs "docker login" directly to Artifact Registry.
-      - run: |-
-         echo '${{ steps.auth.outputs.access_token }}' | docker login -u oauth2accesstoken --password-stdin 'https://${{ env.REGION }}-docker.pkg.dev'
-
-      # - name: Login to GAR
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ${{ env.REGION }}-docker.pkg.dev
-      #     username: oauth2accesstoken
-      #     password: ${{ steps.auth.outputs.access_token }}
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -64,3 +40,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+    # Push to ghcr.io
+    - name: Chart | Push
+      uses: appany/helm-oci-chart-releaser@v0.3.0
+      with:
+        name: go-redis
+        repository: skeenan947/go-redis-sample
+        tag: 0.1.0
+        path: chart/go-redis
+        registry: ${{ env.REGISTRY }}
+        registry_username: ${{ github.actor }}
+        registry_password: ${{ secrets.GITHUB_TOKEN }}
