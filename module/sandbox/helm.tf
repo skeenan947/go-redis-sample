@@ -1,7 +1,5 @@
 resource "helm_release" "go-redis" {
   name = "go-redis"
-  #chart = "oci://us-west1-docker.pkg.dev/go-redis/samples/go-redis"
-  #chart = "../../chart/go-redis/go-redis-0.1.0.tgz"
   chart            = "oci://${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.samples.repository_id}/go-redis"
   namespace        = "go-redis"
   create_namespace = true
