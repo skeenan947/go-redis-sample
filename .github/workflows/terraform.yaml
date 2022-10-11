@@ -1,15 +1,64 @@
-name: "Terraform"
+name: Terraform
 
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - pablorusso
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  REGION: us-west1
+  GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
 
 jobs:
-  call-terraform-sandbox:
-    uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
-    secrets:
-      GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
-    with:
-      working-directory: modules/sandbox
+  # call-terraform-sandbox:
+  #   uses: zencore-dev/terraform-gcp-actions-workflows/.github/workflows/terraform.yml@main
+  #   secrets:
+  #     GOOGLE_CREDENTIALS: ${{secrets.GOOGLE_CREDENTIALS}}
+  #   with:
+  #     working-directory: modules/sandbox
+
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+  
+    # Push to ghcr.io
+      - name: Chart | Push
+        uses: appany/helm-oci-chart-releaser@v0.3.0
+        with:
+          name: go-redis
+          repository: ${{ github.repository }}/helm
+          tag: 0.1.0
+          path: chart/go-redis
+          registry: ${{ env.REGISTRY }}
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}

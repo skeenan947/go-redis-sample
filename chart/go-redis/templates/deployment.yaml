@@ -47,7 +47,7 @@ spec:
           #    port: http
           env:
           - name: REDIS_ADDR
-            value: "10.9.0.4:6379"
+            value: "{{ .Values.redis.host }}:{{ .Values.redis.port }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
