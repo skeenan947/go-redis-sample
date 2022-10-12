@@ -1,4 +1,4 @@
-image: curlimages/curl:latest
+image: dtzar/helm-kubectl:latest
 
 stages:
   - upload
