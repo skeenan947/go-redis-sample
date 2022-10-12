@@ -75,13 +75,13 @@ jobs:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
     # Helm Deploy
-      - name: Helm Deploy
-        uses: deliverybot/helm@master
-        with:
-          namespace: 'default'
-          chart: 'go-redis'
-          token: '${{ github.token }}'
-          secrets: '${{ toJSON(secrets) }}'
-          version: '${{ github.sha }}'
-        env:
-          KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+      # - name: Helm Deploy
+      #   uses: deliverybot/helm@master
+      #   with:
+      #     namespace: 'default'
+      #     chart: 'go-redis'
+      #     token: '${{ github.token }}'
+      #     secrets: '${{ toJSON(secrets) }}'
+      #     version: '${{ github.sha }}'
+      #   env:
+      #     KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
