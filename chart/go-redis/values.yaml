@@ -15,8 +15,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 redis:
-  host: '127.0.0.1'
-  port: '6379'
+  secret: ""
 
 serviceAccount:
   # Specifies whether a service account should be created

@@ -45,9 +45,9 @@ spec:
           #  httpGet:
           #    path: /
           #    port: http
-          env:
-          - name: REDIS_ADDR
-            value: "{{ .Values.redis.host }}:{{ .Values.redis.port }}"
+          envFrom:
+          - secretRef:
+              name: {{ default (printf "%s-redis-addr" (include "go-redis.fullname" .)) .Values.redis.secret }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
